@@ -473,3 +473,12 @@ const par50 = {
   author: "Charles Dickens",
   title: "Hard Times",
 };
+
+export {
+  par1, par2, par3, 
+  par4, par5, par6, par7, par8, par9, par10,
+  par11, par12, par13, par14, par15, par16, par17, par18, par19, par20,
+  par21, par22, par23, par24, par25, par26, par27, par28, par29, par30,
+  par31, par32, par33, par34, par35, par36, par37, par38, par39, par40,
+  par41, par42, par43, par44, par45, par46, par47, par48, par49, par50
+};
