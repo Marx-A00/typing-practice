@@ -26,23 +26,37 @@ function onStart(){
     let textElement = document.querySelector("#text");
     let index = 5;
     let spans = Array.from(textElement.querySelectorAll('span'));
-
+    console.log("spans:",spans);
     document.addEventListener('keypress', function(event) {
-	// Get the key that was pressed
 	let key = event.key;
+	if (index < spans.length && key === spans[index].innerText) {
+            console.log("correct");
+            spans[index].classList.remove('currentLetter');
+            index++; // Increment index only if it's correct
+            if (index < spans.length) {
+		spans[index].classList.add('currentLetter');
+            }
+	} else {
+            console.log("incorrect");
+	}
+    });
+
+    // document.addEventListener('keypress', function(event) {
+    // 	// Get the key that was pressed
+    // 	let key = event.key;
 	
-	if (key === spans[index].innerText) {
-	    console.log("correct");
-	    index++;
-	    spans[index - 1].classList.remove('currentLetter');
-	    spans[index].classList.add('currentLetter');
+    // 	if (key === spans[index].innerText) {
+    // 	    console.log("correct");
+    // 	    index++;
+    // 	    spans[index - 1].classList.remove('currentLetter');
+    // 	    spans[index].classList.add('currentLetter');
 	    
-	}
-	else {
-	    console.log("incorrect");
-	}
+    // 	}
+    // 	else {
+    // 	    console.log("incorrect");
+    // 	}
 	
-    })
+    // })
     
 }
 			     
