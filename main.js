@@ -9,134 +9,153 @@ import {
   par41, par42, par43, par44, par45, par46, par47, par48, par49, par50
 } from './paragraphs.js'
 
-/**
- * What im thinking is that first I will need to write a function 
- * that prepares the text for the display:
- * - spans and shit 
- * - Underline the first letter
- * - gray out the rest of the text
- * -  add dots for the spaces 
- */
-console.log(par1.text);
 
-function onStart(){
-    // call prepare paragraph function with randomly chosen paragraph
-    prepareParagraph(par1);
-    
-    let textElement = document.querySelector("#text");
-    let index = 5;
-    let spans = Array.from(textElement.querySelectorAll('span'));
-    console.log("spans:",spans);
-    document.addEventListener('keypress', function(event) {
-	let key = event.key;
-	if (index < spans.length && key === spans[index].innerText) {
-            console.log("correct");
-            spans[index].classList.remove('currentLetter');
-            index++; // Increment index only if it's correct
-            if (index < spans.length) {
-		spans[index].classList.add('currentLetter');
-            }
-	} else {
-            console.log("incorrect");
-	}
+// Keyboard layouts
+const QWERTY_LAYOUT = [
+  ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='],
+  ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
+  ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'"],
+  ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/']
+];
+
+const DVORAK_LAYOUT = [
+  ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '[', ']'],
+  ["'", ',', '.', 'p', 'y', 'f', 'g', 'c', 'r', 'l', '/', '=', '\\'],
+  ['a', 'o', 'e', 'u', 'i', 'd', 'h', 't', 'n', 's', '-'],
+  [';', 'q', 'j', 'k', 'x', 'b', 'm', 'w', 'v', 'z']
+];
+
+// Sample text for typing practice
+const sampleTexts = [
+  "The quick brown fox jumps over the lazy dog.",
+  "Pack my box with five dozen liquor jugs.",
+  "How vexingly quick daft zebras jump!",
+  "The five boxing wizards jump quickly.",
+  "Sphinx of black quartz, judge my vow."
+];
+
+// DOM elements
+const textDisplay = document.getElementById('text-display');
+const typingInput = document.getElementById('typing-input');
+const keyboardDisplay = document.getElementById('keyboard-display');
+const resetBtn = document.getElementById('reset-btn');
+const dvorakToggle = document.getElementById('dvorak-toggle');
+const wpmDisplay = document.getElementById('wpm');
+const accuracyDisplay = document.getElementById('accuracy');
+
+let currentLayout = QWERTY_LAYOUT;
+let startTime = null;
+let currentText = '';
+let mistakes = 0;
+
+// Initialize the application
+function init() {
+  generateNewText();
+  createKeyboard();
+  setupEventListeners();
+}
+
+// Generate new text for typing practice
+function generateNewText() {
+  currentText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+  textDisplay.textContent = currentText;
+  typingInput.value = '';
+  startTime = null;
+  mistakes = 0;
+  updateStats();
+}
+
+// Create keyboard visualization
+function createKeyboard() {
+  keyboardDisplay.innerHTML = '';
+  currentLayout.forEach(row => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'keyboard-row';
+    row.forEach(key => {
+      const keyDiv = document.createElement('div');
+      keyDiv.className = 'key';
+      keyDiv.textContent = key;
+      rowDiv.appendChild(keyDiv);
     });
-
-    // document.addEventListener('keypress', function(event) {
-    // 	// Get the key that was pressed
-    // 	let key = event.key;
-	
-    // 	if (key === spans[index].innerText) {
-    // 	    console.log("correct");
-    // 	    index++;
-    // 	    spans[index - 1].classList.remove('currentLetter');
-    // 	    spans[index].classList.add('currentLetter');
-	    
-    // 	}
-    // 	else {
-    // 	    console.log("incorrect");
-    // 	}
-	
-    // })
-    
-}
-			     
-
-function prepareParagraph(paragraph){
-    let text = paragraph.text;
-    
-    let textElement = document.querySelector("#text");
-
-    textElement.innerHTML += text;
-
-    // Split the text into an array of characters
-    let characters = textElement.textContent.split('');
-
-// Wrap each character in a span
-    characters = characters.map(char => `<span>${char}</span>`);
-
-// Update the text element with the new HTML
-    textElement.innerHTML = characters.join('');
-    let spans = Array.from(textElement.querySelectorAll('span'));
-    spans[5].classList.add('currentLetter');
-
+    keyboardDisplay.appendChild(rowDiv);
+  });
 }
 
-// // Get the text element
-// let textElement = document.querySelector("#text");
+// Setup event listeners
+function setupEventListeners() {
+  typingInput.addEventListener('input', handleTyping);
+  resetBtn.addEventListener('click', generateNewText);
+  dvorakToggle.addEventListener('change', handleLayoutChange);
+}
 
-// // Split the text into an array of characters
-// let characters = textElement.textContent.split('');
+// Handle typing input
+function handleTyping(e) {
+  if (!startTime) startTime = new Date();
+  
+  const inputText = e.target.value;
+  const targetText = currentText.substring(0, inputText.length);
+  
+  if (inputText !== targetText) {
+    mistakes++;
+    typingInput.classList.add('error');
+  } else {
+    typingInput.classList.remove('error');
+  }
+  
+  // Highlight current key on keyboard
+  const currentKey = currentText[inputText.length - 1];
+  highlightKey(currentKey);
+  
+  // Check if typing is complete
+  if (inputText.length === currentText.length) {
+    finishTyping();
+  }
+  
+  updateStats();
+}
 
-// // Wrap each character in a span
-// characters = characters.map(char => `<span>${char}</span>`);
+// Handle keyboard layout change
+function handleLayoutChange(e) {
+  currentLayout = e.target.checked ? DVORAK_LAYOUT : QWERTY_LAYOUT;
+  createKeyboard();
+}
 
-// // Update the text element with the new HTML
-// textElement.innerHTML = characters.join('');
-// let spans = Array.from(textElement.querySelectorAll('span'));
-// spans[7].classList.add('currentLetter');
+// Highlight the current key on the keyboard
+function highlightKey(key) {
+  const keys = document.querySelectorAll('.key');
+  keys.forEach(k => k.classList.remove('active'));
+  
+  if (key) {
+    const keyElement = Array.from(keys).find(k => k.textContent.toLowerCase() === key.toLowerCase());
+    if (keyElement) keyElement.classList.add('active');
+  }
+}
 
+// Calculate WPM and accuracy
+function updateStats() {
+  if (!startTime) {
+    wpmDisplay.textContent = 'WPM: 0';
+    accuracyDisplay.textContent = 'Accuracy: 100%';
+    return;
+  }
+  
+  const timeElapsed = (new Date() - startTime) / 1000 / 60; // in minutes
+  const wordsTyped = typingInput.value.length / 5; // assume average word length of 5
+  const wpm = Math.round(wordsTyped / timeElapsed);
+  
+  const accuracy = Math.max(0, Math.round(100 - (mistakes / currentText.length * 100)));
+  
+  wpmDisplay.textContent = `WPM: ${wpm}`;
+  accuracyDisplay.textContent = `Accuracy: ${accuracy}%`;
+}
 
+// Handle completion of typing
+function finishTyping() {
+  setTimeout(() => {
+    alert(`Completed! WPM: ${wpmDisplay.textContent}, ${accuracyDisplay.textContent}`);
+    generateNewText();
+  }, 100);
+}
 
-// Add an event listener for keypress events
-
-// document.addEventListener('keypress', function(event) {
-//   // Get the key that was pressed
-//   let key = event.key;
-
-//   if (key === spans[index].innerText) {
-//     console.log("correct");
-//     index++;
-//     spans[index-1].classList.remove('currentLetter');
-//     spans[index].classList.add('currentLetter');
-
-//   }
-//   else{
-//     console.log("incorrect");
-//   }
-
-
-  // Find the span elements that contain the pressed key
-
-  // let spans = Array.from(textElement.querySelectorAll('span')).filter(span => span.textContent === key);
-
-  // Add a class to the spans
-  // spans.forEach(span => span.classList.add('typedCorrectly'));
-//});
-
-
-
-
-
-
-// solution if hardcoding [5] doesn't work anymore
-
-// document.addEventListener('DOMContentLoaded', function() {
-//     let textElement = document.querySelector('#yourTextElementId');
-//     let spans = Array.from(textElement.querySelectorAll('span'));
-//     let firstNonEmptySpan = findFirstNonEmptySpan(spans);
-
-//     if (firstNonEmptySpan) {
-//         firstNonEmptySpan.classList.add('currentLetter');
-//     }
-// });
-onStart();
+// Initialize the application
+init();
