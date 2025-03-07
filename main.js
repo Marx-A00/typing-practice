@@ -136,6 +136,95 @@ function displayText() {
 function createKeyboard() {
   keyboardDisplay.innerHTML = '';
   
+  // Load the SVG keyboard layout
+  fetch('/keyboard-layout.svg')
+    .then(response => response.text())
+    .then(svgContent => {
+      // Insert the SVG content
+      keyboardDisplay.innerHTML = svgContent;
+      
+      // Add data-key attributes to the keycaps for highlighting
+      const keycaps = keyboardDisplay.querySelectorAll('.keycap');
+      
+      // Map of key positions to characters for QWERTY layout
+      const qwertyKeyMap = {
+        // Row 1 (number row)
+        '82,75.25': 'q', '136,61.75': 'w', '190,55': 'e', '244,61.75': 'r', '298,68.5': 't',
+        '352,68.5': 'y', '406,68.5': 'u', '460,68.5': 'i', '514,68.5': 'o', '568,68.5': 'p',
+        
+        // Row 2 (home row)
+        '82,129.25': 'a', '136,115.75': 's', '190,109': 'd', '244,115.75': 'f', '298,122.5': 'g',
+        '352,122.5': 'h', '406,122.5': 'j', '460,122.5': 'k', '514,122.5': 'l', '568,122.5': ';', '622,122.5': "'",
+        
+        // Row 3 (shift row)
+        '82,183.25': 'z', '136,169.75': 'x', '190,163': 'c', '244,169.75': 'v', '298,176.5': 'b',
+        '352,176.5': 'n', '406,176.5': 'm', '460,176.5': ',', '514,176.5': '.', '568,176.5': '/',
+        
+        // Space bar
+        '406,237.25': ' '
+      };
+      
+      // Map of key positions to characters for DVORAK layout
+      const dvorakKeyMap = {
+        // Row 1
+        '82,75.25': "'", '136,61.75': ',', '190,55': '.', '244,61.75': 'p', '298,68.5': 'y',
+        '352,68.5': 'f', '406,68.5': 'g', '460,68.5': 'c', '514,68.5': 'r', '568,68.5': 'l',
+        
+        // Row 2 (home row)
+        '82,129.25': 'a', '136,115.75': 'o', '190,109': 'e', '244,115.75': 'u', '298,122.5': 'i',
+        '352,122.5': 'd', '406,122.5': 'h', '460,122.5': 't', '514,122.5': 'n', '568,122.5': 's', '622,122.5': '-',
+        
+        // Row 3
+        '82,183.25': ';', '136,169.75': 'q', '190,163': 'j', '244,169.75': 'k', '298,176.5': 'x',
+        '352,176.5': 'b', '406,176.5': 'm', '460,176.5': 'w', '514,176.5': 'v', '568,176.5': 'z',
+        
+        // Space bar
+        '406,237.25': ' '
+      };
+      
+      // Add data-key attributes to keycaps
+      keycaps.forEach((keycap, index) => {
+        // Get the position of the keycap
+        const rect = keycap.querySelector('rect');
+        if (rect) {
+          const x = rect.getAttribute('x');
+          const y = rect.getAttribute('y');
+          const position = `${x},${y}`;
+          
+          // Get the key character based on the current layout
+          const keyMap = currentLayout === QWERTY_LAYOUT ? qwertyKeyMap : dvorakKeyMap;
+          const key = keyMap[position];
+          
+          if (key) {
+            // Add data-key attribute
+            keycap.setAttribute('data-key', key.toLowerCase());
+            
+            // Add text label to the key
+            const textElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            textElement.setAttribute('x', parseInt(x) + 26); // Center of key
+            textElement.setAttribute('y', parseInt(y) + 30); // Center of key
+            textElement.setAttribute('text-anchor', 'middle');
+            textElement.setAttribute('font-size', '14');
+            textElement.setAttribute('fill', '#333');
+            textElement.setAttribute('class', 'key-label');
+            textElement.textContent = key === ' ' ? 'Space' : key;
+            
+            keycap.appendChild(textElement);
+          }
+        }
+      });
+    })
+    .catch(error => {
+      console.error('Error loading keyboard layout:', error);
+      // Fallback to the original keyboard creation method
+      createFallbackKeyboard();
+    });
+}
+
+// Fallback keyboard creation method (original implementation)
+function createFallbackKeyboard() {
+  keyboardDisplay.innerHTML = '';
+  
   // Only show the most relevant keys to save space
   const compactLayout = currentLayout.map(row => {
     // Filter out special characters that are less commonly used for typing practice
@@ -242,28 +331,61 @@ function handleLayoutChange(e) {
 function highlightKey(key) {
   if (!key) return;
   
-  // Remove active class from all keys
-  const keys = document.querySelectorAll('.key');
-  keys.forEach(k => k.classList.remove('active'));
-  
   // Normalize the key to highlight
   const keyToHighlight = key.toLowerCase();
   
-  let keySelector;
+  // Check if we're using the SVG keyboard
+  const isSvgKeyboard = document.querySelector('.keycap') !== null;
   
-  // Special handling for different character types
-  if (keyToHighlight === ' ') {
-    keySelector = '.key.space-bar';
+  if (isSvgKeyboard) {
+    // Remove active class from all keycaps
+    const keycaps = document.querySelectorAll('.keycap');
+    keycaps.forEach(k => {
+      k.classList.remove('active');
+      k.querySelector('.inner.border')?.setAttribute('fill', '#fcfcfc');
+      k.querySelector('.inner')?.setAttribute('fill', '#fcfcfc');
+    });
+    
+    // Find the keycap with the matching data-key attribute
+    const keyElement = document.querySelector(`.keycap[data-key="${keyToHighlight}"]`);
+    
+    if (keyElement) {
+      // Add active class for animation
+      keyElement.classList.add('active');
+      
+      // Highlight the key by changing the inner fill color
+      const innerBorder = keyElement.querySelector('.inner.border');
+      const innerFill = keyElement.querySelector('.inner');
+      
+      if (innerBorder && innerFill) {
+        innerBorder.setAttribute('fill', '#3498db');
+        innerFill.setAttribute('fill', '#3498db');
+      }
+    } else {
+      console.log(`Key not found in keyboard: ${keyToHighlight}`);
+    }
   } else {
-    keySelector = `.key[data-key="${keyToHighlight}"]`;
-  }
-  
-  const keyElement = document.querySelector(keySelector);
-  
-  if (keyElement) {
-    keyElement.classList.add('active');
-  } else {
-    console.log(`Key not found in keyboard: ${keyToHighlight}`);
+    // Original implementation for the fallback keyboard
+    // Remove active class from all keys
+    const keys = document.querySelectorAll('.key');
+    keys.forEach(k => k.classList.remove('active'));
+    
+    let keySelector;
+    
+    // Special handling for different character types
+    if (keyToHighlight === ' ') {
+      keySelector = '.key.space-bar';
+    } else {
+      keySelector = `.key[data-key="${keyToHighlight}"]`;
+    }
+    
+    const keyElement = document.querySelector(keySelector);
+    
+    if (keyElement) {
+      keyElement.classList.add('active');
+    } else {
+      console.log(`Key not found in keyboard: ${keyToHighlight}`);
+    }
   }
 }
 
