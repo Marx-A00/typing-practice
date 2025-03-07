@@ -9,8 +9,39 @@
   </head>
   <body>
     <div class="container">
+      <nav class="toolbar">
+        <div class="toolbar-title">
+          <h1>Typing Practice</h1>
+        </div>
+        <div class="toolbar-actions">
+          <div class="dropdown">
+            <button class="dropdown-btn">Settings</button>
+            <div class="dropdown-content">
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="dvorak-toggle"> DVORAK Layout
+                </label>
+              </div>
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="dark-mode-toggle"> Dark Mode
+                </label>
+              </div>
+              <div class="setting-item">
+                <label>Text Size:
+                  <select id="text-size">
+                    <option value="small">Small</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="large">Large</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+      
       <header>
-        <h1>Typing Practice</h1>
         <div class="stats">
           <span id="wpm">WPM: 0</span>
           <span id="accuracy">Accuracy: 100%</span>
@@ -29,9 +60,6 @@
       
       <footer>
         <button id="reset-btn">Reset</button>
-        <label>
-          <input type="checkbox" id="dvorak-toggle"> DVORAK Layout
-        </label>
       </footer>
     </div>
     <script type="module" src="/main.js"></script>

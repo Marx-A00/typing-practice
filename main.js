@@ -31,6 +31,8 @@ const resetBtn = document.getElementById('reset-btn');
 const dvorakToggle = document.getElementById('dvorak-toggle');
 const wpmDisplay = document.getElementById('wpm');
 const accuracyDisplay = document.getElementById('accuracy');
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+const textSizeSelect = document.getElementById('text-size');
 
 // State variables
 let currentLayout = QWERTY_LAYOUT;
@@ -45,6 +47,7 @@ function init() {
   generateNewText();
   createKeyboard();
   setupEventListeners();
+  loadSettings();
 }
 
 // Generate new text for typing practice
@@ -137,7 +140,14 @@ function createKeyboard() {
   keyboardDisplay.innerHTML = '';
   
   // Load the SVG keyboard layout
-  fetch('/keyboard-layout.svg')
+  fetch('./public/keyboard-layout.svg')
+    .then(response => {
+      if (!response.ok) {
+        // Try alternative path if the first one fails
+        return fetch('/keyboard-layout.svg');
+      }
+      return response;
+    })
     .then(response => response.text())
     .then(svgContent => {
       // Insert the SVG content
@@ -266,6 +276,8 @@ function setupEventListeners() {
   document.addEventListener('keydown', handleKeyPress);
   resetBtn.addEventListener('click', generateNewText);
   dvorakToggle.addEventListener('change', handleLayoutChange);
+  darkModeToggle.addEventListener('change', handleDarkModeChange);
+  textSizeSelect.addEventListener('change', handleTextSizeChange);
 }
 
 // Handle key press
@@ -318,13 +330,23 @@ function handleKeyPress(e) {
   // Update display
   displayText();
   updateStats();
+  
+  // Highlight the next key to be typed
+  if (currentPosition < currentText.length) {
+    highlightKey(currentText[currentPosition]);
+  }
 }
 
 // Handle keyboard layout change
 function handleLayoutChange(e) {
-  currentLayout = e.target.checked ? DVORAK_LAYOUT : QWERTY_LAYOUT;
+  if (e.target.checked) {
+    currentLayout = DVORAK_LAYOUT;
+    localStorage.setItem('keyboardLayout', 'dvorak');
+  } else {
+    currentLayout = QWERTY_LAYOUT;
+    localStorage.setItem('keyboardLayout', 'qwerty');
+  }
   createKeyboard();
-  highlightKey(currentText[currentPosition]);
 }
 
 // Highlight the current key on the keyboard
@@ -342,25 +364,16 @@ function highlightKey(key) {
     const keycaps = document.querySelectorAll('.keycap');
     keycaps.forEach(k => {
       k.classList.remove('active');
-      k.querySelector('.inner.border')?.setAttribute('fill', '#fcfcfc');
-      k.querySelector('.inner')?.setAttribute('fill', '#fcfcfc');
     });
     
     // Find the keycap with the matching data-key attribute
     const keyElement = document.querySelector(`.keycap[data-key="${keyToHighlight}"]`);
     
     if (keyElement) {
-      // Add active class for animation
+      // Add active class for animation and styling
       keyElement.classList.add('active');
       
-      // Highlight the key by changing the inner fill color
-      const innerBorder = keyElement.querySelector('.inner.border');
-      const innerFill = keyElement.querySelector('.inner');
-      
-      if (innerBorder && innerFill) {
-        innerBorder.setAttribute('fill', '#3498db');
-        innerFill.setAttribute('fill', '#3498db');
-      }
+      // The CSS will handle the color changes via the .active class
     } else {
       console.log(`Key not found in keyboard: ${keyToHighlight}`);
     }
@@ -432,6 +445,50 @@ function finishTyping() {
 function resetAfterCompletion(e) {
   e.preventDefault();
   generateNewText();
+}
+
+// Handle dark mode toggle
+function handleDarkModeChange(e) {
+  if (e.target.checked) {
+    document.body.classList.add('dark-mode');
+    localStorage.setItem('darkMode', 'enabled');
+  } else {
+    document.body.classList.remove('dark-mode');
+    localStorage.setItem('darkMode', 'disabled');
+  }
+}
+
+// Handle text size change
+function handleTextSizeChange(e) {
+  const size = e.target.value;
+  textDisplay.className = 'text-display';
+  textDisplay.classList.add(`text-size-${size}`);
+  localStorage.setItem('textSize', size);
+}
+
+// Load saved settings
+function loadSettings() {
+  // Load dark mode setting
+  const darkMode = localStorage.getItem('darkMode');
+  if (darkMode === 'enabled') {
+    darkModeToggle.checked = true;
+    document.body.classList.add('dark-mode');
+  }
+  
+  // Load text size setting
+  const textSize = localStorage.getItem('textSize');
+  if (textSize) {
+    textSizeSelect.value = textSize;
+    textDisplay.classList.add(`text-size-${textSize}`);
+  }
+  
+  // Load keyboard layout setting
+  const layout = localStorage.getItem('keyboardLayout');
+  if (layout === 'dvorak') {
+    dvorakToggle.checked = true;
+    currentLayout = DVORAK_LAYOUT;
+    createKeyboard();
+  }
 }
 
 // Initialize the application

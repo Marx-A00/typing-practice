@@ -30,4 +30,7 @@ As the user types, the application should highlight the correct key with a white
 
 ## Technologies
 
+# Desires/ideas
+- [ ] practice typing for coding
+- [ ] kinda like vim golf, but for coding maybe emacs stuff idk bruh tbh 
 
