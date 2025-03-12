@@ -139,12 +139,29 @@ function handleKeyPress(e) {
   const expectedChar = currentText[currentPosition];
   let pressedKey = e.key;
   
-  console.log('pressedKey: ', pressedKey);
-  console.log('expectedChar: ', expectedChar);
+  // Enhanced debugging for all keypresses
+  console.log('pressedKey:', pressedKey, 'code:', e.code, 'keyCode:', e.keyCode);
+  console.log('expectedChar:', expectedChar, 'charCode:', expectedChar.charCodeAt(0));
   
-  // Handle space key and other special keys
+  // Special debugging for dash/hyphen
+  if (expectedChar === '-' || pressedKey === '-' || 
+      e.code === 'Minus' || e.code === 'NumpadSubtract') {
+    console.log('DASH DETECTED - Details:');
+    console.log('  Expected dash:', expectedChar === '-');
+    console.log('  Pressed dash:', pressedKey === '-');
+    console.log('  Key code:', e.code);
+    console.log('  Key event:', e);
+  }
+  
+  // Special handling for common problematic keys
   if (e.code === 'Space' || pressedKey === ' ' || pressedKey === 'space') {
     pressedKey = ' ';
+  }
+  
+  // Handle dash/hyphen specifically (could be different representations)
+  if ((e.code === 'Minus' || e.code === 'NumpadSubtract') && 
+      (expectedChar === '-' || expectedChar === '–' || expectedChar === '—')) {
+    pressedKey = expectedChar; // Match whatever type of dash is expected
   }
   
   // Check if the pressed key matches the expected character (case sensitive)
