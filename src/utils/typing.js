@@ -17,7 +17,7 @@ export function calculateStats(currentPosition, mistakes, startTime, isTyping) {
 }
 
 // Process text for display
-export function prepareTextForDisplay(text, currentPosition) {
+export function prepareTextForDisplay(text, currentPosition, incorrectPositions) {
   const textContainer = document.createElement('div');
   textContainer.className = 'text-container';
   
@@ -31,8 +31,11 @@ export function prepareTextForDisplay(text, currentPosition) {
       charSpan.textContent = text[i];
     }
     
-    if (i < currentPosition) {
-      // Already typed characters
+    if (incorrectPositions.includes(i)) {
+      // Character was typed incorrectly at some point
+      charSpan.classList.add('text-display-incorrect');
+    } else if (i < currentPosition) {
+      // Correctly typed characters
       charSpan.classList.add('text-display-correct');
     } else if (i === currentPosition) {
       // Current character to type
@@ -65,15 +68,6 @@ export function getRandomTextSnippet(paragraphs, maxLength = 100) {
   }
   
   return text;
-}
-
-// Mark character as incorrect
-export function markCharacterAsIncorrect(textDisplay, currentPosition) {
-  const spans = textDisplay.querySelectorAll('span');
-  if (spans.length > currentPosition) {
-    spans[currentPosition].classList.remove('text-display-highlight');
-    spans[currentPosition].classList.add('text-display-incorrect');
-  }
 }
 
 // Create completion message element

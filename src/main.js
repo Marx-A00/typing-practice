@@ -1,17 +1,16 @@
 import "./style.css";
 
-import { 
-  QWERTY_LAYOUT, 
-  DVORAK_LAYOUT, 
-  createKeyboard, 
-  highlightKey 
-} from './components/keyboard.js';
+// import { 
+//   QWERTY_LAYOUT, 
+//   DVORAK_LAYOUT, 
+//   createKeyboard, 
+//   highlightKey 
+// } from './components/keyboard.js';
 
 import {
   calculateStats,
   prepareTextForDisplay,
   getRandomTextSnippet,
-  markCharacterAsIncorrect,
   createCompletionMessage
 } from './utils/typing.js';
 
@@ -26,7 +25,7 @@ import {
 
 // DOM elements
 const textDisplay = document.getElementById('text-display');
-const keyboardDisplay = document.getElementById('keyboard-display');
+// const keyboardDisplay = document.getElementById('keyboard-display');
 const resetBtn = document.getElementById('reset-btn');
 const dvorakToggle = document.getElementById('dvorak-toggle');
 const wpmDisplay = document.getElementById('wpm');
@@ -35,26 +34,24 @@ const darkModeToggle = document.getElementById('dark-mode-toggle');
 const textSizeSelect = document.getElementById('text-size');
 
 // State variables
-let currentLayout = QWERTY_LAYOUT;
+// let currentLayout = QWERTY_LAYOUT;
 let startTime = null;
 let currentText = '';
 let currentPosition = 0;
 let mistakes = 0;
 let isTyping = false;
+let incorrectPositions = []; // Track positions of incorrectly typed characters
 
 // Initialize the application
 function init() {
-  const keyboardCreated = createKeyboard(keyboardDisplay, currentLayout);
+  // const keyboardCreated = createKeyboard(keyboardDisplay, currentLayout);
   
   // Wait for next tick to ensure keyboard is in DOM
   setTimeout(() => {
-    if (document.querySelector('.keycap')) {
-      generateNewText();
-      setupEventListeners();
-      loadSettings();
-    } else {
-      console.error('Keyboard failed to initialize');
-    }
+    // Remove the check for keyboard elements since they won't exist
+    generateNewText();
+    setupEventListeners();
+    loadSettings();
   }, 0);
 }
 
@@ -76,6 +73,7 @@ function generateNewText() {
   startTime = null;
   mistakes = 0;
   isTyping = false;
+  incorrectPositions = []; // Reset incorrect positions array
   
   // Display the text
   displayText();
@@ -87,7 +85,7 @@ function displayText() {
   textDisplay.innerHTML = '';
   
   // Create a container with highlighted text
-  const textContainer = prepareTextForDisplay(currentText, currentPosition);
+  const textContainer = prepareTextForDisplay(currentText, currentPosition, incorrectPositions);
   
   // Set the data-key attribute for the first character
   if (currentText.length > 0) {
@@ -99,10 +97,10 @@ function displayText() {
   
   textDisplay.appendChild(textContainer);
   
-  // Highlight the current key on the keyboard
-  if (currentPosition < currentText.length) {
-    highlightKey(currentText[currentPosition], keyboardDisplay);
-  }
+  // Comment out or remove keyboard highlighting
+  // if (currentPosition < currentText.length) {
+  //   highlightKey(currentText[currentPosition], keyboardDisplay);
+  // }
 }
 
 // Setup event listeners
@@ -133,6 +131,7 @@ function handleKeyPress(e) {
   
   const expectedKey = currentText[currentPosition].toLowerCase();
   let pressedKey = e.key.toLowerCase();
+  console.log('pressedKey: ',pressedKey);
   
   // Handle space key and other special keys
   if (e.code === 'Space' || pressedKey === ' ' || pressedKey === 'space') {
@@ -153,30 +152,34 @@ function handleKeyPress(e) {
     // Incorrect key press
     mistakes++;
     
-    // Mark the current character as incorrect
-    markCharacterAsIncorrect(textDisplay, currentPosition);
+    // Record the position of the incorrect character
+    if (!incorrectPositions.includes(currentPosition)) {
+      incorrectPositions.push(currentPosition);
+    }
+    
+    console.log('mistakes: ',mistakes);
   }
   
   // Update display
   displayText();
   updateStats();
   
-  // Highlight the next key to be typed
-  if (currentPosition < currentText.length) {
-    highlightKey(currentText[currentPosition], keyboardDisplay);
-  }
+  // Comment out or remove keyboard highlighting
+  // if (currentPosition < currentText.length) {
+  //   highlightKey(currentText[currentPosition], keyboardDisplay);
+  // }
 }
 
 // Handle keyboard layout change
 function handleLayoutChange(e) {
   if (e.target.checked) {
-    currentLayout = DVORAK_LAYOUT;
+    // currentLayout = DVORAK_LAYOUT;
     localStorage.setItem('keyboardLayout', 'dvorak');
   } else {
-    currentLayout = QWERTY_LAYOUT;
+    // currentLayout = QWERTY_LAYOUT;
     localStorage.setItem('keyboardLayout', 'qwerty');
   }
-  createKeyboard(keyboardDisplay, currentLayout);
+  // createKeyboard(keyboardDisplay, currentLayout);
 }
 
 // Calculate WPM and accuracy
@@ -244,12 +247,12 @@ function loadSettings() {
   }
   
   // Load keyboard layout setting
-  const layout = localStorage.getItem('keyboardLayout');
-  if (layout === 'dvorak') {
-    dvorakToggle.checked = true;
-    currentLayout = DVORAK_LAYOUT;
-    createKeyboard(keyboardDisplay, currentLayout);
-  }
+  // const layout = localStorage.getItem('keyboardLayout');
+  // if (layout === 'dvorak') {
+  //   dvorakToggle.checked = true;
+  //   currentLayout = DVORAK_LAYOUT;
+  //   createKeyboard(keyboardDisplay, currentLayout);
+  // }
 }
 
 // Initialize the application
