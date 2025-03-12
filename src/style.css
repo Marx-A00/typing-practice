@@ -559,7 +559,7 @@ body.dark-mode .keycap[data-key].active .inner.border {
 }
 
 body.dark-mode .keycap[data-key].active .key-label {
-  fill: #ffffff !important;
+  fill: red !important;
 }
 
 body.dark-mode .key-label {
@@ -569,6 +569,10 @@ body.dark-mode .key-label {
 body.dark-mode .keycap .inner,
 body.dark-mode .keycap .inner.border {
   fill: #444444;
+}
+
+.keycap[data-key="a"] .inner {
+  fill: red;
 }
 
 
