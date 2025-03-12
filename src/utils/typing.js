@@ -49,20 +49,49 @@ export function prepareTextForDisplay(text, currentPosition, incorrectPositions)
 }
 
 // Get a random snippet of text from a list of paragraphs
-export function getRandomTextSnippet(paragraphs, maxLength = 100) {
+export function getRandomTextSnippet(paragraphs, maxLength = 150) {
   const randomParagraph = paragraphs[Math.floor(Math.random() * paragraphs.length)];
   
   // Get the raw text and trim leading/trailing whitespace
   let rawText = randomParagraph.text.trim();
   
-  // Limit text length to ensure it fits on screen without scrolling
-  // Get only first 100 characters (or fewer if the paragraph is shorter)
+  // If the raw text is already smaller than the max length, just return it
+  if (rawText.length <= maxLength) {
+    return rawText;
+  }
+  
+  // Get a portion of text up to the max length
   let text = rawText.substring(0, maxLength);
   
-  // Make sure we're not cutting off in the middle of a word
-  if (text.length === maxLength && rawText.length > maxLength) {
+  // Find the last complete sentence within our text
+  // Look for period, exclamation mark, or question mark followed by a space or end of text
+  const sentenceEndRegex = /[.!?](?=\s|$)/g;
+  const matches = [...text.matchAll(sentenceEndRegex)];
+  
+  if (matches.length > 0) {
+    // Get the position of the last sentence ending
+    const lastSentenceEnd = matches[matches.length - 1].index + 1;  // +1 to include the punctuation
+    
+    // Ensure we have at least one full sentence
+    if (lastSentenceEnd > maxLength * 0.4) {  // Make sure we're not just getting a tiny snippet
+      text = text.substring(0, lastSentenceEnd);
+    } else {
+      // If the sentence is too short, try to find the next sentence ending in the raw text
+      const extendedText = rawText.substring(0, maxLength * 1.5);  // Look a bit further
+      const extendedMatches = [...extendedText.matchAll(sentenceEndRegex)];
+      
+      // Find the first sentence ending after our minimum threshold
+      for (const match of extendedMatches) {
+        if (match.index > maxLength * 0.4 && match.index < maxLength * 1.5) {
+          text = extendedText.substring(0, match.index + 1);  // +1 to include the punctuation
+          break;
+        }
+      }
+    }
+  } else {
+    // If no sentence endings found, fall back to ending at a word boundary
     const lastSpaceIndex = text.lastIndexOf(' ');
-    if (lastSpaceIndex > maxLength * 0.8) { // Only trim if we're not losing too much text
+    if (lastSpaceIndex > 0) {
       text = text.substring(0, lastSpaceIndex);
     }
   }
