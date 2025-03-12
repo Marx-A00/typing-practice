@@ -117,8 +117,14 @@ function handleKeyPress(e) {
   // Always prevent default for all key presses to avoid scrolling
   e.preventDefault();
   
-  // Ignore modifier keys or if we don't have any text to type
-  if (e.ctrlKey || e.altKey || e.metaKey || !currentText) return;
+  // Ignore all modifier keys alone - they shouldn't count as mistakes
+  if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta' || 
+      e.key === 'CapsLock' || e.key === 'Tab' || e.key === 'Escape') {
+    return;
+  }
+  
+  // Ignore other combinations with modifier keys or if we don't have any text to type
+  if ((e.ctrlKey || e.altKey || e.metaKey) || !currentText) return;
   
   // Start timing on first keypress
   if (!isTyping) {
@@ -129,17 +135,20 @@ function handleKeyPress(e) {
   // Skip if we've reached the end of the text
   if (currentPosition >= currentText.length) return;
   
-  const expectedKey = currentText[currentPosition].toLowerCase();
-  let pressedKey = e.key.toLowerCase();
-  console.log('pressedKey: ',pressedKey);
+  // Get the expected character in its original case
+  const expectedChar = currentText[currentPosition];
+  let pressedKey = e.key;
+  
+  console.log('pressedKey: ', pressedKey);
+  console.log('expectedChar: ', expectedChar);
   
   // Handle space key and other special keys
   if (e.code === 'Space' || pressedKey === ' ' || pressedKey === 'space') {
     pressedKey = ' ';
   }
   
-  // Check if the pressed key matches the expected key
-  if (pressedKey === expectedKey) {
+  // Check if the pressed key matches the expected character (case sensitive)
+  if (pressedKey === expectedChar) {
     // Correct key press
     currentPosition++;
     
@@ -157,7 +166,7 @@ function handleKeyPress(e) {
       incorrectPositions.push(currentPosition);
     }
     
-    console.log('mistakes: ',mistakes);
+    console.log('mistakes: ', mistakes);
   }
   
   // Update display
