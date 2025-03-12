@@ -31,15 +31,15 @@ export function prepareTextForDisplay(text, currentPosition, incorrectPositions)
       charSpan.textContent = text[i];
     }
     
-    if (incorrectPositions.includes(i)) {
-      // Character was typed incorrectly at some point
+    if (i === currentPosition) {
+      // Current character to type should always be highlighted, regardless of past mistakes
+      charSpan.classList.add('text-display-highlight');
+    } else if (incorrectPositions.includes(i) && i < currentPosition) {
+      // Only mark characters as incorrect if they've been typed (passed) already
       charSpan.classList.add('text-display-incorrect');
     } else if (i < currentPosition) {
       // Correctly typed characters
       charSpan.classList.add('text-display-correct');
-    } else if (i === currentPosition) {
-      // Current character to type
-      charSpan.classList.add('text-display-highlight');
     }
     
     textContainer.appendChild(charSpan);
